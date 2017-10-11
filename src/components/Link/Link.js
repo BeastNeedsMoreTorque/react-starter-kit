@@ -1,7 +1,15 @@
-/*! React Starter Kit | MIT License | http://www.reactstarterkit.com/ */
+/**
+ * React Starter Kit (https://www.reactstarterkit.com/)
+ *
+ * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE.txt file in the root directory of this source tree.
+ */
 
-import React, { PropTypes, Component } from 'react';
-import Location from '../../core/Location';
+import React from 'react';
+import PropTypes from 'prop-types';
+import history from '../../history';
 
 function isLeftClickEvent(event) {
   return event.button === 0;
@@ -11,45 +19,42 @@ function isModifiedEvent(event) {
   return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
 }
 
-class Link extends Component {
-
+class Link extends React.Component {
   static propTypes = {
     to: PropTypes.string.isRequired,
-    state: PropTypes.object,
+    children: PropTypes.node.isRequired,
     onClick: PropTypes.func,
   };
 
-  static handleClick = (event) => {
-    let allowTransition = true;
-    let clickResult;
+  static defaultProps = {
+    onClick: null,
+  };
 
-    if (this.props && this.props.onClick) {
-      clickResult = this.props.onClick(event);
+  handleClick = event => {
+    if (this.props.onClick) {
+      this.props.onClick(event);
     }
 
     if (isModifiedEvent(event) || !isLeftClickEvent(event)) {
       return;
     }
 
-    if (clickResult === false || event.defaultPrevented === true) {
-      allowTransition = false;
+    if (event.defaultPrevented === true) {
+      return;
     }
 
     event.preventDefault();
-
-    if (allowTransition) {
-      const link = event.currentTarget;
-      Location.pushState(
-        this.props && this.props.state || null,
-        this.props && this.props.to || (link.pathname + link.search));
-    }
+    history.push(this.props.to);
   };
 
   render() {
-    const { to, query, ...props } = this.props;
-    return <a href={Location.createHref(to, query)} onClick={Link.handleClick.bind(this)} {...props} />;
+    const { to, children, ...props } = this.props;
+    return (
+      <a href={to} {...props} onClick={this.handleClick}>
+        {children}
+      </a>
+    );
   }
-
 }
 
 export default Link;
